@@ -66,3 +66,49 @@ CREATE TABLE IF NOT EXISTS messages (
     FOREIGN KEY (conversation_id) REFERENCES conversations(id),
     INDEX idx_conversation (conversation_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- AI调用日志表
+CREATE TABLE IF NOT EXISTS ai_call_logs (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT,
+    provider VARCHAR(30) NOT NULL COMMENT 'AI提供商:mimo/deepseek/zhipu/qwen',
+    model VARCHAR(50) NOT NULL COMMENT '模型名称',
+    prompt_template_id BIGINT COMMENT '使用的Prompt模板ID',
+    prompt_version INT COMMENT 'Prompt版本',
+    input_tokens INT COMMENT '输入Token数',
+    output_tokens INT COMMENT '输出Token数',
+    total_tokens INT COMMENT '总Token数',
+    latency_ms INT COMMENT '响应延迟(毫秒)',
+    cost DECIMAL(10,4) COMMENT '调用成本',
+    status VARCHAR(20) NOT NULL COMMENT '调用状态:success/failed/timeout',
+    error_message TEXT COMMENT '错误信息',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user (user_id),
+    INDEX idx_provider (provider),
+    INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Prompt模板表
+CREATE TABLE IF NOT EXISTS prompts (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL COMMENT '模板名称',
+    scene VARCHAR(50) NOT NULL COMMENT '应用场景:career_advice/tech_learning/interview_prep等',
+    content TEXT NOT NULL COMMENT 'Prompt模板内容',
+    variables JSON COMMENT '模板变量定义',
+    version INT DEFAULT 1 COMMENT '版本号',
+    status VARCHAR(20) DEFAULT 'active' COMMENT '状态:active/draft/deprecated',
+    is_ab_test BOOLEAN DEFAULT FALSE COMMENT '是否参与A/B测试',
+    ab_group VARCHAR(10) COMMENT 'A/B测试分组',
+    usage_count INT DEFAULT 0 COMMENT '使用次数',
+    satisfaction_score DECIMAL(3,2) COMMENT '平均满意度评分',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 初始化默认Prompt模板
+INSERT INTO prompts (name, scene, content, version, status) VALUES
+('通用咨询', 'general', '你是CodeInspire，一个专业的计算机专业学生AI个性化顾问。请根据用户背景信息提供专业、实用、可执行的建议。核心原则：1.不编造信息 2.信息不足时追问 3.低置信度时提示 4.提供具体建议', 1, 'active'),
+('求职建议', 'career_advice', '你是CodeInspire求职顾问。根据{{学校层次}}、{{年级}}、{{目标岗位}}、{{目标城市}}等信息，为用户提供差异化求职策略。分析：1.当前阶段判断 2.技能差距分析 3.时间规划建议 4.风险提醒', 1, 'active'),
+('技术学习', 'tech_learning', '你是CodeInspire技术导师。针对{{专业方向}}和用户技术水平，提供：1.概念解释（使用类比）2.代码示例 3.学习路径 4.实践建议。保持简洁易懂。', 1, 'active'),
+('面试准备', 'interview_prep', '你是CodeInspire面试教练。针对{{目标岗位}}方向，提供：1.高频面试题 2.答题思路 3.模拟练习 4.提升建议。注重实战性。', 1, 'active')
+ON DUPLICATE KEY UPDATE name=name;

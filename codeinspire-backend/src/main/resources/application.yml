@@ -62,3 +62,7 @@ logging:
   level:
     com.codeinspire: debug
     org.springframework.security: debug
+
+spring:
+  profiles:
+    include: ai
