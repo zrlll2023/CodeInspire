@@ -1,0 +1,48 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Java
+target/
+*.class
+*.jar
+*.war
+*.log
+hs_err_pid*
+.m2/
+
+# Node
+node_modules/
+dist/
+.cache/
+.npm/
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-compose.override.yml
+
+# Testing
+coverage/
+.nyc_output/
+.junit/
+
+# Build
+build/
+out/
