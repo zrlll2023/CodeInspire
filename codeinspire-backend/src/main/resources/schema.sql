@@ -197,3 +197,58 @@ CREATE TABLE IF NOT EXISTS task_execution_logs (
     INDEX idx_task (task_id),
     INDEX idx_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 通知表
+CREATE TABLE IF NOT EXISTS notifications (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    type VARCHAR(30) NOT NULL COMMENT '通知类型:task_reminder/time_node/progress_warning/ai_reply/system',
+    title VARCHAR(200) NOT NULL COMMENT '通知标题',
+    content TEXT NOT NULL COMMENT '通知内容',
+    data JSON COMMENT '关联数据',
+    is_read BOOLEAN DEFAULT FALSE COMMENT '是否已读',
+    read_at TIMESTAMP COMMENT '阅读时间',
+    channel VARCHAR(20) DEFAULT 'in_app' COMMENT '通知渠道:in_app/email/websocket',
+    send_status VARCHAR(20) DEFAULT 'sent' COMMENT '发送状态:pending/sent/failed',
+    scheduled_at TIMESTAMP COMMENT '计划发送时间',
+    sent_at TIMESTAMP COMMENT '实际发送时间',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_user_read (user_id, is_read),
+    INDEX idx_scheduled (scheduled_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 通知设置表
+CREATE TABLE IF NOT EXISTS notification_settings (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL UNIQUE,
+    task_reminder_enabled BOOLEAN DEFAULT TRUE COMMENT '任务提醒开关',
+    time_node_enabled BOOLEAN DEFAULT TRUE COMMENT '时间节点提醒开关',
+    progress_warning_enabled BOOLEAN DEFAULT TRUE COMMENT '进度预警开关',
+    ai_reply_enabled BOOLEAN DEFAULT TRUE COMMENT 'AI回复通知开关',
+    system_announcement_enabled BOOLEAN DEFAULT TRUE COMMENT '系统公告开关',
+    quiet_start_hour VARCHAR(5) DEFAULT '22:00' COMMENT '免打扰开始时间',
+    quiet_end_hour VARCHAR(5) DEFAULT '08:00' COMMENT '免打扰结束时间',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 用户反馈表
+CREATE TABLE IF NOT EXISTS user_feedbacks (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    message_id BIGINT NOT NULL COMMENT '关联的消息ID',
+    type VARCHAR(20) NOT NULL COMMENT '反馈类型:like/dislike/report',
+    rating INT COMMENT '满意度评分1-5',
+    comment TEXT COMMENT '详细反馈',
+    feedback_details JSON COMMENT '反馈详情',
+    status VARCHAR(20) DEFAULT 'pending' COMMENT '处理状态:pending/reviewed/resolved',
+    admin_reply TEXT COMMENT '管理员回复',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (message_id) REFERENCES messages(id),
+    INDEX idx_message (message_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
