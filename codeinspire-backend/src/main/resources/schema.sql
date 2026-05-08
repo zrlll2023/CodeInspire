@@ -137,3 +137,63 @@ CREATE TABLE IF NOT EXISTS user_growth_snapshots (
     FOREIGN KEY (user_id) REFERENCES users(id),
     INDEX idx_user_date (user_id, snapshot_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 规划表
+CREATE TABLE IF NOT EXISTS plans (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    type VARCHAR(50) DEFAULT 'learning' COMMENT '规划类型:learning/career/interview/project',
+    status VARCHAR(20) DEFAULT 'active' COMMENT '状态:active/completed/paused/archived',
+    start_date DATE,
+    end_date DATE,
+    target_goal TEXT COMMENT '目标描述',
+    total_tasks INT DEFAULT 0 COMMENT '总任务数',
+    completed_tasks INT DEFAULT 0 COMMENT '已完成任务数',
+    priority INT DEFAULT 1 COMMENT '优先级 0-5',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_user_status (user_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 任务表
+CREATE TABLE IF NOT EXISTS tasks (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    plan_id BIGINT,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    status VARCHAR(20) DEFAULT 'pending' COMMENT '状态:pending/in_progress/completed/paused/cancelled/overdue',
+    priority INT DEFAULT 1 COMMENT '优先级 0-5',
+    due_date DATE,
+    completed_at DATE,
+    category VARCHAR(50) COMMENT '任务分类',
+    estimated_hours VARCHAR(20) COMMENT '预估工时',
+    sort_order INT DEFAULT 0 COMMENT '排序序号',
+    parent_task_id BIGINT COMMENT '父任务ID',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_id) REFERENCES plans(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_plan (plan_id),
+    INDEX idx_user_status (user_id, status),
+    INDEX idx_due_date (due_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 任务执行日志表
+CREATE TABLE IF NOT EXISTS task_execution_logs (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    task_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    action VARCHAR(30) NOT NULL COMMENT '操作类型:create/complete/update/delete/status_change',
+    previous_status VARCHAR(20) COMMENT '变更前状态',
+    new_status VARCHAR(20) COMMENT '变更后状态',
+    notes TEXT COMMENT '操作备注',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_id) REFERENCES tasks(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_task (task_id),
+    INDEX idx_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
