@@ -1,6 +1,7 @@
 package com.codeinspire.service;
 
 import com.codeinspire.dto.ProfileInitRequest;
+import com.codeinspire.dto.UserProfileFullRequest;
 import com.codeinspire.entity.UserProfile;
 import com.codeinspire.repository.UserProfileRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -75,6 +76,61 @@ public class UserProfileService {
         if (request.getSkills() != null) {
             try {
                 profile.setSkills(objectMapper.writeValueAsString(request.getSkills()));
+            } catch (JsonProcessingException e) {
+                // ignore
+            }
+        }
+
+        userProfileRepository.updateById(profile);
+        return profile;
+    }
+
+    public UserProfile updateFullProfile(Long userId, UserProfileFullRequest request) {
+        UserProfile profile = getProfileByUserId(userId);
+        if (profile == null) {
+            throw new RuntimeException("用户画像不存在，请先初始化");
+        }
+
+        if (request.getSchoolLevel() != null) profile.setSchoolLevel(request.getSchoolLevel());
+        if (request.getSchoolType() != null) profile.setSchoolType(request.getSchoolType());
+        if (request.getEducationLevel() != null) profile.setEducationLevel(request.getEducationLevel());
+        if (request.getMajor() != null) profile.setMajor(request.getMajor());
+        if (request.getGrade() != null) profile.setGrade(request.getGrade());
+        if (request.getUrgencyLevel() != null) profile.setUrgencyLevel(request.getUrgencyLevel());
+        if (request.getWeeklyAvailableHours() != null) profile.setWeeklyAvailableHours(request.getWeeklyAvailableHours());
+        if (request.getCourseworkPressure() != null) profile.setCourseworkPressure(request.getCourseworkPressure());
+        if (request.getTargetCityLevel() != null) profile.setTargetCityLevel(request.getTargetCityLevel());
+        if (request.getHometownConsideration() != null) profile.setHometownConsideration(request.getHometownConsideration());
+        if (request.getIndustryPreference() != null) profile.setIndustryPreference(request.getIndustryPreference());
+        if (request.getPaymentWillingness() != null) profile.setPaymentWillingness(request.getPaymentWillingness());
+        if (request.getComputerConfig() != null) profile.setComputerConfig(request.getComputerConfig());
+        if (request.getSelfLearningAbility() != null) profile.setSelfLearningAbility(request.getSelfLearningAbility());
+        if (request.getEconomicPressure() != null) profile.setEconomicPressure(request.getEconomicPressure());
+        if (request.getCurrentStatus() != null) profile.setCurrentStatus(request.getCurrentStatus());
+        if (request.getMajorDirection() != null) profile.setMajorDirection(request.getMajorDirection());
+        if (request.getTargetPosition() != null) profile.setTargetPosition(request.getTargetPosition());
+        if (request.getTargetCompany() != null) profile.setTargetCompany(request.getTargetCompany());
+        if (request.getExpectedSalary() != null) profile.setExpectedSalary(request.getExpectedSalary());
+
+        if (request.getSkills() != null && !request.getSkills().isEmpty()) {
+            try {
+                profile.setSkills(objectMapper.writeValueAsString(request.getSkills()));
+            } catch (JsonProcessingException e) {
+                // ignore
+            }
+        }
+
+        if (request.getProjects() != null && !request.getProjects().isEmpty()) {
+            try {
+                profile.setProjects(objectMapper.writeValueAsString(request.getProjects()));
+            } catch (JsonProcessingException e) {
+                // ignore
+            }
+        }
+
+        if (request.getCertifications() != null && !request.getCertifications().isEmpty()) {
+            try {
+                profile.setCertifications(objectMapper.writeValueAsString(request.getCertifications()));
             } catch (JsonProcessingException e) {
                 // ignore
             }

@@ -112,3 +112,28 @@ INSERT INTO prompts (name, scene, content, version, status) VALUES
 ('技术学习', 'tech_learning', '你是CodeInspire技术导师。针对{{专业方向}}和用户技术水平，提供：1.概念解释（使用类比）2.代码示例 3.学习路径 4.实践建议。保持简洁易懂。', 1, 'active'),
 ('面试准备', 'interview_prep', '你是CodeInspire面试教练。针对{{目标岗位}}方向，提供：1.高频面试题 2.答题思路 3.模拟练习 4.提升建议。注重实战性。', 1, 'active')
 ON DUPLICATE KEY UPDATE name=name;
+
+-- 技能评估记录表
+CREATE TABLE IF NOT EXISTS skill_assessments (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    skill_category VARCHAR(50) NOT NULL COMMENT '技能分类:java/python/database/algorithm等',
+    skill_name VARCHAR(100) NOT NULL COMMENT '技能名称',
+    level INT DEFAULT 0 COMMENT '能力等级 0-100',
+    assessment_method VARCHAR(20) DEFAULT 'self_report' COMMENT '评估方式:self_report/test/ai_estimate',
+    evidence JSON COMMENT '评估证据:测试正确率/项目经验等',
+    assessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_user_skill (user_id, skill_category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 用户成长快照表
+CREATE TABLE IF NOT EXISTS user_growth_snapshots (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    snapshot_date DATE COMMENT '快照日期',
+    skill_summary JSON COMMENT '技能汇总数据',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_user_date (user_id, snapshot_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
